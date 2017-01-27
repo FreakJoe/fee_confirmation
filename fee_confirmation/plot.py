@@ -53,12 +53,22 @@ def calculate_distribution():
 def draw():
 	"""Draws the plot"""
 	# make values from -5 to 5, for this example
-	zvals = np.random.rand(500,500)*2-1
-	# make a color map of fixed colors
-	cmap = colors.LinearSegmentedColormap.from_list('GreenRed', ['green', 'red'], N=256)
-	img = plt.imshow(zvals,interpolation='nearest',
-                    cmap = cmap,
-                    origin='lower')
+	zvals = np.random.rand(MAX_FEE_RATE, MAX_CONFIRMATION_BLOCKS)*2-1
+	
+	# Colour map, green at 1, red at 0
+	cmap = colors.LinearSegmentedColormap.from_list('GreenRed', ['red', 'green'], N=256)
+	img = plt.imshow(zvals, cmap = cmap, origin = 'lower')
+	
+	axes = plt.gca()
+	axes.set_xbound(0.0, MAX_FEE_RATE)
+	axes.set_ybound(0.0, MAX_CONFIRMATION_BLOCKS)
+	axes.set_xlabel('Fee rate in satoshis / byte')
+	axes.set_ylabel('Confirmation time in blocks')
+	axes.set_xscale('log')
+	axes.set_yscale('log')
+	axes.relim()
+	axes.autoscale()
+
 	plt.colorbar(img,cmap=cmap)
 	plt.show()
 
@@ -68,3 +78,4 @@ def plot():
 	"""Create a colour-coded plot displaying the distribution of bitcoin transactions' fee rate
 	and their confirmation time in blocks"""
 	distribution = calculate_distribution()
+	draw()
