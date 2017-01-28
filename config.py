@@ -5,9 +5,9 @@ import math
 DATA_FOLDER = 'data' # Name of the folder (inside of the root application directory) that will hold data
 CSV_NAME = 'conf_times.csv' # Name of the csv file holding the data (inside of the data folder)
 
-AXIS_BASE = 10
-MAX_FEE_RATE = 1000 # Must be a multiple of AXIS_BASE
-MAX_CONFIRMATION_BLOCKS = 1000 # Must be a multiple of AXIS_BASE
+AXIS_BASE = 2
+MAX_FEE_RATE = 256 # Must be a multiple of AXIS_BASE
+MAX_CONFIRMATION_BLOCKS = 256 # Must be a multiple of AXIS_BASE
 
 # Don't edit this
 RATE_EXPONENT = int(math.ceil(math.log(MAX_FEE_RATE, AXIS_BASE)))

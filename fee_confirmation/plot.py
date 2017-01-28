@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+import matplotlib.ticker as ticker
 import math
 
 from config import CSV_PATH, MAX_FEE_RATE, MAX_CONFIRMATION_BLOCKS, AXIS_BASE, RATE_EXPONENT, BLOCK_EXPONENT
@@ -62,8 +63,12 @@ def draw():
 	ax.set_ybound(0.0, MAX_CONFIRMATION_BLOCKS)
 	ax.set_xlabel('Fee rate in satoshis / byte')
 	ax.set_ylabel('Confirmation time in blocks')
-	ax.set_xscale('log')
-	ax.set_yscale('log')
+	ax.set_xscale('symlog')
+	ax.set_yscale('symlog')
+	ax.set_xticks(x_edges)
+	ax.set_yticks(y_edges)
+	ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
+	ax.get_yaxis().set_major_formatter(ticker.ScalarFormatter())
 
 	colour_map = colors.LinearSegmentedColormap.from_list('GreenRed', ['red', 'green'], N=256)
 	ax.pcolorfast(x_edges, y_edges, Z, cmap=colour_map)
