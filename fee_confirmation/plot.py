@@ -52,24 +52,19 @@ def calculate_distribution():
 
 def draw():
 	"""Draws the plot"""
-	# make values from -5 to 5, for this example
-	zvals = np.random.rand(MAX_FEE_RATE, MAX_CONFIRMATION_BLOCKS)*2-1
-	
-	# Colour map, green at 1, red at 0
-	cmap = colors.LinearSegmentedColormap.from_list('GreenRed', ['red', 'green'], N=256)
-	img = plt.imshow(zvals, cmap = cmap, origin = 'lower')
-	
-	axes = plt.gca()
-	axes.set_xbound(0.0, MAX_FEE_RATE)
-	axes.set_ybound(0.0, MAX_CONFIRMATION_BLOCKS)
-	axes.set_xlabel('Fee rate in satoshis / byte')
-	axes.set_ylabel('Confirmation time in blocks')
-	axes.set_xscale('log')
-	axes.set_yscale('log')
-	axes.relim()
-	axes.autoscale()
 
-	plt.colorbar(img,cmap=cmap)
+	fig, ax = plt.subplots()
+	Z = np.random.random(size=(4, 4))
+	x_edges = [0] + [10 ** i for i in range(int(np.log10(MAX_FEE_RATE)) + 1)]
+	y_edges = [0] + [10 ** i for i in range(int(np.log10(MAX_CONFIRMATION_BLOCKS)) + 1)]
+	X, Y = np.meshgrid(x_edges, y_edges)
+	ax.set_xbound(0.0, MAX_FEE_RATE)
+	ax.set_ybound(0.0, MAX_CONFIRMATION_BLOCKS)
+	ax.set_xlabel('Fee rate in satoshis / byte')
+	ax.set_ylabel('Confirmation time in blocks')
+
+	colour_map = colors.LinearSegmentedColormap.from_list('GreenRed', ['red', 'green'], N=256)
+	ax.pcolorfast(X, Y, Z, cmap=colour_map)
 	plt.show()
 
 	return
