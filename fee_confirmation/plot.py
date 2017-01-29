@@ -25,38 +25,26 @@ def calculate_distribution():
 		print('Ensure that both the max fee rate and max number of confirmation blocks are powers of 10')
 		raise ValueError
 
-	distribution = {}
+	distribution = []
 	# Initialize the distribution dict to contain a sub-dict
 	# For each grid along the x (fee rate) and within those sub-dicts another
 	# sub-dict for every grid along the y axis (blocks to confirm)
-	for i in range(RATE_EXPONENT + 1):
-		distribution[str(i)] = {}
-		if i != 0:
-			distribution[str(i)]['min_fee_rate'] = AXIS_BASE ** (i - 1)
+	for i in range(BLOCK_EXPONENT + 1):
+		distribution.append([])
+		for n in range(RATE_EXPONENT + 1):
+			distribution[i].append(float(i) / float(BLOCK_EXPONENT))
 
-		else:
-			distribution[str(i)]['min_fee_rate'] = 0
-
-		distribution[str(i)]['max_fee_rate'] = AXIS_BASE ** i
-
-		for n in range(BLOCK_EXPONENT + 1):
-			distribution[str(i)][str(n)] = {}
-			if n != 0:
-				distribution[str(i)][str(n)]['min_conf_blocks'] = AXIS_BASE ** (n - 1)
-
-			else:
-				distribution[str(i)][str(n)]['min_conf_blocks'] = 0
-
-			distribution[str(i)][str(n)]['max_conf_blocks'] = AXIS_BASE ** n
-			distribution[str(i)][str(n)]['percentage'] = None
-
-	return distribution
+	# Convert 2-dimensional list to np array and reverse to account for the first sub-list representing
+	# The top row of grids
+	return np.array(distribution)[::-1]
 
 def draw():
 	"""Draws the plot"""
+	distribution = calculate_distribution()
+	if not distribution.any():
+		return
 
 	fig, ax = plt.subplots()
-	Z = np.random.random(size=(RATE_EXPONENT + 1,  BLOCK_EXPONENT + 1))
 	x_edges = [0] + [AXIS_BASE ** i for i in range(RATE_EXPONENT + 1)]
 	y_edges = [0] + [AXIS_BASE ** i for i in range(BLOCK_EXPONENT + 1)]
 	ax.set_xbound(0.0, MAX_FEE_RATE)
@@ -71,7 +59,7 @@ def draw():
 	ax.get_yaxis().set_major_formatter(ticker.ScalarFormatter())
 
 	colour_map = colors.LinearSegmentedColormap.from_list('GreenRed', ['red', 'green'], N=256)
-	ax.pcolorfast(x_edges, y_edges, Z, cmap=colour_map)
+	ax.pcolorfast(x_edges, y_edges, distribution, cmap=colour_map)
 	plt.show()
 
 	return
@@ -79,5 +67,4 @@ def draw():
 def plot():
 	"""Create a colour-coded plot displaying the distribution of bitcoin transactions' fee rate
 	and their confirmation time in blocks"""
-	distribution = calculate_distribution()
 	draw()
