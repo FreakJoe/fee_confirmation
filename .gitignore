@@ -11,7 +11,8 @@ task.txt
 
 # Distribution / packaging
 .Python
-data/
+data/*
+!data/test_conf_times.csv
 venv/
 build/
 develop-eggs/

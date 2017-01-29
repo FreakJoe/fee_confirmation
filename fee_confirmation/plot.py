@@ -5,14 +5,18 @@ import matplotlib.colors as colors
 import matplotlib.ticker as ticker
 import math
 
-from config import CSV_PATH, MAX_FEE_RATE, MAX_CONFIRMATION_BLOCKS, AXIS_BASE, RATE_EXPONENT, BLOCK_EXPONENT
+from config import CSV_PATH, TEST_CSV_PATH, MAX_FEE_RATE, MAX_CONFIRMATION_BLOCKS, AXIS_BASE, RATE_EXPONENT, BLOCK_EXPONENT
 from .utility import is_power_of
 
-def calculate_distribution():
+def calculate_distribution(test=False):
 	"""Calculates the percentage of transactions located within each grid"""
 	data = None
 	try:
-		data = pd.read_csv(CSV_PATH, usecols=['fee_rate', 'conf_blocks'])
+		if not test:
+			data = pd.read_csv(CSV_PATH, usecols=['fee_rate', 'conf_blocks'])
+
+		else:
+			data = pd.read_csv(TEST_CSV_PATH, usecols=['fee_rate', 'conf_blocks'])
 
 	except:
 		print('Make sure you\'ve supplied a correctly named data file in the place specified in config.py')
@@ -29,12 +33,40 @@ def calculate_distribution():
 	# Initialize the distribution dict to contain a sub-dict
 	# For each grid along the x (fee rate) and within those sub-dicts another
 	# sub-dict for every grid along the y axis (blocks to confirm)
+	total_transactions = len(data)
 	for i in range(BLOCK_EXPONENT + 1):
 		distribution.append([])
 		for n in range(RATE_EXPONENT + 1):
-			distribution[i].append(float(i) / float(BLOCK_EXPONENT))
+			block_min = 0
+			if i != 0:
+				block_min = AXIS_BASE ** (i - 1)
 
-	# Convert 2-dimensional list to np array and reverse to account for the first sub-list representing
+			block_max = 1
+			if i != 0:
+				block_max = AXIS_BASE ** (i)
+
+			rate_min = 0
+			if n != 0:
+				rate_min = AXIS_BASE ** (n - 1)
+
+			rate_max = 1
+			if n != 0:
+				rate_max = AXIS_BASE ** (n)
+
+			# Select transactions confirmed in less than or equal to block_max
+			transactions_grid = data[data['conf_blocks'] <= block_max]
+			# ... confirmed in more than block_min
+			transactions_grid = transactions_grid[data['conf_blocks'] > block_min]
+			# ... at a fee rate less than or equal to rate_max
+			transactions_grid = transactions_grid[data['fee_rate'] <= rate_max]
+			# Avoid filtering out transactions at 0 fee
+			if rate_min != 0:
+				# ... at a fee rate higher than rate_min
+				transactions_grid = transactions_grid[data['fee_rate'] > rate_min]
+
+			distribution[i].append(float(len(transactions_grid)) / float(total_transactions))
+
+	# Convert 2-dimensional list to np array and reverse to account for the first sub-array representing
 	# The top row of grids
 	return np.array(distribution)[::-1]
 
