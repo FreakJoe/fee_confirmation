@@ -9,7 +9,7 @@ from config import CSV_PATH, TEST_CSV_PATH, MAX_FEE_RATE, MAX_CONFIRMATION_BLOCK
 from .utility import is_power_of
 
 def calculate_distribution(test=False):
-	"""Calculates the percentage of transactions located within each grid"""
+	"""Calculates the percentage of transactions in each grid"""
 	data = None
 	try:
 		if not test:
@@ -30,10 +30,10 @@ def calculate_distribution(test=False):
 		raise ValueError
 
 	distribution = []
-	# Initialize the distribution dict to contain a sub-dict
-	# For each grid along the x (fee rate) and within those sub-dicts another
-	# sub-dict for every grid along the y axis (blocks to confirm)
 	total_transactions = len(data)
+	# Calculate distribution
+	# Each sub-list is a range of blocks it took to confirm
+	# Each sub-list item shows the percentage of transactions in a certain fee and conf block range
 	for i in range(BLOCK_EXPONENT + 1):
 		distribution.append([])
 		for n in range(RATE_EXPONENT + 1):
@@ -91,7 +91,8 @@ def draw():
 	ax.get_yaxis().set_major_formatter(ticker.ScalarFormatter())
 
 	colour_map = colors.LinearSegmentedColormap.from_list('GreenRed', ['red', 'green'], N=256)
-	ax.pcolorfast(x_edges, y_edges, distribution, cmap=colour_map)
+	img = ax.pcolorfast(x_edges, y_edges, distribution, cmap=colour_map)
+	plt.colorbar(img, cmap=colour_map)
 	plt.show()
 
 	return
