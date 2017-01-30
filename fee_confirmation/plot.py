@@ -64,11 +64,11 @@ def calculate_distribution(test=False):
 				# ... at a fee rate higher than rate_min
 				transactions_grid = transactions_grid[data['fee_rate'] > rate_min]
 
-			distribution[i].append(float(len(transactions_grid)) / float(total_transactions))
+			percentage = float(len(transactions_grid)) / float(total_transactions)
+			distribution[i].append(percentage)
 
-	# Convert 2-dimensional list to np array and reverse to account for the first sub-array representing
-	# The top row of grids
-	return np.array(distribution)[::-1]
+	# Convert 2-dimensional list to np array
+	return np.array(distribution)
 
 def draw():
 	"""Draws the plot"""
