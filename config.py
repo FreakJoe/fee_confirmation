@@ -10,6 +10,8 @@ AXIS_BASE = 2
 MAX_FEE_RATE = 256 # Must be a multiple of AXIS_BASE
 MAX_CONFIRMATION_BLOCKS = 256 # Must be a multiple of AXIS_BASE
 
+PERCENTAGE_OF_TOTAL_TRANSACTIONS = False # If this value is turned to true, a grid's colour will result from the percentage it makes up of all transactions visualized in the grid, regardless of fee range.
+
 # Don't edit this
 RATE_EXPONENT = int(math.ceil(math.log(MAX_FEE_RATE, AXIS_BASE)))
 BLOCK_EXPONENT = int(math.ceil(math.log(MAX_CONFIRMATION_BLOCKS, AXIS_BASE)))

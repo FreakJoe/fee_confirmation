@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.ticker as ticker
 
-from config import CSV_PATH, TEST_CSV_PATH, MAX_FEE_RATE, MAX_CONFIRMATION_BLOCKS, AXIS_BASE, RATE_EXPONENT, BLOCK_EXPONENT
+from config import CSV_PATH, TEST_CSV_PATH, MAX_FEE_RATE, MAX_CONFIRMATION_BLOCKS, AXIS_BASE, RATE_EXPONENT, BLOCK_EXPONENT, PERCENTAGE_OF_TOTAL_TRANSACTIONS
 from .utility import is_power_of
 
 def calculate_distribution(test=False):
@@ -22,6 +22,8 @@ def calculate_distribution(test=False):
 		return
 
 	data = data.sort_values('fee_rate', ascending=True)
+	# Exclude transactions not displayed inside the plot's dimensions
+	data = data[data['fee_rate'] <= MAX_FEE_RATE][data['conf_blocks'] <= MAX_CONFIRMATION_BLOCKS]
 
 	# Ensure that the max values of the axes are powers of AXIS_BASE
 	if not is_power_of(AXIS_BASE, MAX_FEE_RATE) or not is_power_of(AXIS_BASE, MAX_CONFIRMATION_BLOCKS):
@@ -65,18 +67,32 @@ def calculate_distribution(test=False):
 			except:
 				pass
 
-			# Select transactions confirmed in less than or equal to block_max
-			transactions_grid = data[data['conf_blocks'] <= block_max]
-			# ... confirmed in more than block_min
-			transactions_grid = transactions_grid[data['conf_blocks'] > block_min]
-			# ... at a fee rate less than or equal to rate_max
-			transactions_grid = transactions_grid[data['fee_rate'] <= rate_max]
+			# Select transactions confirmed at a fee rate less than or equal to rate_max
+			transactions_grid = data[data['fee_rate'] <= rate_max]
 			# Avoid filtering out transactions at 0 fee
 			if rate_min != 0:
 				# ... at a fee rate higher than rate_min
-				transactions_grid = transactions_grid[data['fee_rate'] > rate_min]
+				transactions_grid = transactions_grid[transactions_grid['fee_rate'] > rate_min]
 
-			percentage = float(len(transactions_grid)) / float(total_transactions)
+			transactions_in_rate_range = len(transactions_grid)
+
+			# ... in less than or equal to block_max
+			transactions_grid = transactions_grid[transactions_grid['conf_blocks'] <= block_max]
+			# ... confirmed in more than block_min
+			transactions_grid = transactions_grid[transactions_grid['conf_blocks'] > block_min]
+			transactions_in_grid = len(transactions_grid)
+
+			# Calculate percentage of transactions in a given fee rate range in that block range
+			percentage = 0
+			try:
+				if not PERCENTAGE_OF_TOTAL_TRANSACTIONS:
+					percentage = float(transactions_in_grid) / float(transactions_in_rate_range)
+
+				else:
+					percentage = float(transactions_in_grid) / float(total_transactions)
+
+			except:
+				pass
 			distribution[i][j] = percentage
 
 	# Convert 2-dimensional list to np array
@@ -101,7 +117,7 @@ def draw():
 	ax.get_yaxis().set_major_formatter(ticker.ScalarFormatter())
 
 	colour_map = colors.LinearSegmentedColormap.from_list('GreenRed', ['red', 'green'], N=256)
-	img = ax.pcolormesh(X, Y, Z, cmap=colour_map)
+	img = ax.pcolormesh(X, Y, Z, cmap=colour_map, vmin=0, vmax=1)
 	plt.colorbar(img, cmap=colour_map)
 	plt.show()
 
