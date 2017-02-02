@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.ticker as ticker
+import matplotlib.mlab as mlab
 import math
 
 from config import CSV_PATH, TEST_CSV_PATH, MAX_FEE_RATE, MAX_CONFIRMATION_BLOCKS, AXIS_BASE, RATE_EXPONENT, BLOCK_EXPONENT
@@ -29,29 +30,42 @@ def calculate_distribution(test=False):
 		print('Ensure that both the max fee rate and max number of confirmation blocks are powers of 10')
 		raise ValueError
 
-	distribution = []
+	# Populate X, Y, Z as per documentation on matplotlib.pyplot.pcolor
+	distribution = [[0 for j in range(RATE_EXPONENT + 1)] for i in range(BLOCK_EXPONENT + 1)]
+	x = [[0 for j in range(RATE_EXPONENT + 1)] for i in range(BLOCK_EXPONENT + 1)]
+	y = [[0 for j in range(RATE_EXPONENT + 1)] for i in range(BLOCK_EXPONENT + 1)]
 	total_transactions = len(data)
-	# Calculate distribution
-	# Each sub-list is a range of blocks it took to confirm
-	# Each sub-list item shows the percentage of transactions in a certain fee and conf block range
 	for i in range(BLOCK_EXPONENT + 1):
-		distribution.append([])
-		for n in range(RATE_EXPONENT + 1):
-			block_min = 0
-			if i != 0:
-				block_min = AXIS_BASE ** (i - 1)
+		block_min = 0
+		if i != 0:
+			block_min = AXIS_BASE ** (i - 1)
 
-			block_max = 1
-			if i != 0:
-				block_max = AXIS_BASE ** (i)
+		block_max = 1
+		if i != 0:
+			block_max = AXIS_BASE ** (i)
 
+		for j in range(RATE_EXPONENT + 1):
 			rate_min = 0
-			if n != 0:
-				rate_min = AXIS_BASE ** (n - 1)
+			if j != 0:
+				rate_min = AXIS_BASE ** (j - 1)
 
 			rate_max = 1
-			if n != 0:
-				rate_max = AXIS_BASE ** (n)
+			if j != 0:
+				rate_max = AXIS_BASE ** (j)
+
+			x[i][j] = rate_min
+			try:
+				x[i][j + 1] = rate_max
+
+			except:
+				pass
+
+			y[i][j] = block_min
+			try:
+				[i + 1][j] = block_max
+
+			except:
+				pass
 
 			# Select transactions confirmed in less than or equal to block_max
 			transactions_grid = data[data['conf_blocks'] <= block_max]
@@ -65,33 +79,31 @@ def calculate_distribution(test=False):
 				transactions_grid = transactions_grid[data['fee_rate'] > rate_min]
 
 			percentage = float(len(transactions_grid)) / float(total_transactions)
-			distribution[i].append(percentage)
+			distribution[i][j] = percentage
 
 	# Convert 2-dimensional list to np array
-	return np.array(distribution)
+	return (np.array(x), np.array(y), np.array(distribution))
 
 def draw():
 	"""Draws the plot"""
-	distribution = calculate_distribution()
-	if not distribution.any():
+	(X, Y, Z) = calculate_distribution()
+	if not Z.any():
 		return
 
 	fig, ax = plt.subplots()
-	x_edges = [0] + [AXIS_BASE ** i for i in range(RATE_EXPONENT + 1)]
-	y_edges = [0] + [AXIS_BASE ** i for i in range(BLOCK_EXPONENT + 1)]
 	ax.set_xbound(0.0, MAX_FEE_RATE)
 	ax.set_ybound(0.0, MAX_CONFIRMATION_BLOCKS)
 	ax.set_xlabel('Fee rate in satoshis / byte')
 	ax.set_ylabel('Confirmation time in blocks')
 	ax.set_xscale('symlog')
 	ax.set_yscale('symlog')
-	ax.set_xticks(x_edges)
-	ax.set_yticks(y_edges)
+	ax.set_xticks(X[0])
+	ax.set_yticks(X[0])
 	ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
 	ax.get_yaxis().set_major_formatter(ticker.ScalarFormatter())
 
 	colour_map = colors.LinearSegmentedColormap.from_list('GreenRed', ['red', 'green'], N=256)
-	img = ax.pcolorfast(x_edges, y_edges, distribution, cmap=colour_map)
+	img = ax.pcolormesh(X, Y, Z, cmap=colour_map)
 	plt.colorbar(img, cmap=colour_map)
 	plt.show()
 
