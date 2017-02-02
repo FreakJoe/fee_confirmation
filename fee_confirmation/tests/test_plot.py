@@ -10,11 +10,10 @@ from ..plot import calculate_distribution
 
 class TestPlot(unittest.TestCase):
 	def test_distribution(self):
-		distribution = calculate_distribution(test=True)
-		self.assertEqual(len(distribution), BLOCK_EXPONENT + 1)
+		distribution = calculate_distribution(test=True)[2]
 		for a in distribution:
-			self.assertEqual(len(a), RATE_EXPONENT + 1)
+			self.assertEqual(len(a), RATE_EXPONENT + 2)
 
 		# Ensure that there is one grid containing 20% and two containing 40% of transactions
-		self.assertEqual(np.count_nonzero(distribution == 0.2), 1)
-		self.assertEqual(np.count_nonzero(distribution == 0.4), 2)
+		self.assertEqual(np.count_nonzero(distribution.flatten() == 0.2), 1)
+		self.assertEqual(np.count_nonzero(distribution.flatten() == 0.4), 2)
