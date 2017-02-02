@@ -3,8 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.ticker as ticker
-import matplotlib.mlab as mlab
-import math
 
 from config import CSV_PATH, TEST_CSV_PATH, MAX_FEE_RATE, MAX_CONFIRMATION_BLOCKS, AXIS_BASE, RATE_EXPONENT, BLOCK_EXPONENT
 from .utility import is_power_of
@@ -31,11 +29,11 @@ def calculate_distribution(test=False):
 		raise ValueError
 
 	# Populate X, Y, Z as per documentation on matplotlib.pyplot.pcolor
-	distribution = [[0 for j in range(RATE_EXPONENT + 1)] for i in range(BLOCK_EXPONENT + 1)]
-	x = [[0 for j in range(RATE_EXPONENT + 1)] for i in range(BLOCK_EXPONENT + 1)]
-	y = [[0 for j in range(RATE_EXPONENT + 1)] for i in range(BLOCK_EXPONENT + 1)]
+	distribution = [[0 for j in range(RATE_EXPONENT + 2)] for i in range(BLOCK_EXPONENT + 2)]
+	x = [[0 for j in range(RATE_EXPONENT + 2)] for i in range(BLOCK_EXPONENT + 2)]
+	y = [[0 for j in range(RATE_EXPONENT + 2)] for i in range(BLOCK_EXPONENT + 2)]
 	total_transactions = len(data)
-	for i in range(BLOCK_EXPONENT + 1):
+	for i in range(BLOCK_EXPONENT + 2):
 		block_min = 0
 		if i != 0:
 			block_min = AXIS_BASE ** (i - 1)
@@ -44,7 +42,7 @@ def calculate_distribution(test=False):
 		if i != 0:
 			block_max = AXIS_BASE ** (i)
 
-		for j in range(RATE_EXPONENT + 1):
+		for j in range(RATE_EXPONENT + 2):
 			rate_min = 0
 			if j != 0:
 				rate_min = AXIS_BASE ** (j - 1)
